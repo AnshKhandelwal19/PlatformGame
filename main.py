@@ -42,14 +42,31 @@ file.close()
 
 score = 0
 score_font = pygame.font.Font('Pixel.ttf', 50)
+highscore_font = pygame.font.Font('Pixel.ttf', 50)
 
 #Intro screen fonts
-game_font = pygame.font.Font('Pixel.ttf', 100)
-start_font = pygame.font.Font('Pixel.ttf', 50)
+game_font = pygame.font.Font('Pixel.ttf', 150)
 game_display = game_font.render('Platform', False, 'Black')
 game_display_rect = game_display.get_rect(center = (400, 200))
+
+start_font = pygame.font.Font('Pixel.ttf', 75)
 start_display = start_font.render('Start', False, 'Black')
 start_rect = start_display.get_rect(center = (400, 300))
+
+
+#Endgame Screen Fonts
+game_over_font = pygame.font.Font('Pixel.ttf', 100)
+game_over = game_over_font.render('Game Over', False, 'Black')
+game_over_rect = game_over.get_rect(center = (400, 200))
+
+play_again_font = pygame.font.Font('Pixel.ttf', 50)
+play_again = play_again_font.render('Again', False, 'Black')
+play_again_rect = play_again.get_rect(center = (300, 300))
+
+quit_font = pygame.font.Font('Pixel.ttf', 50)
+quit = quit_font.render('Quit', False, 'Black')
+quit_rect = quit.get_rect(center = (500, 300))
+
 
 #Intro Splash Screen
 exit = False
@@ -71,14 +88,19 @@ while not exit:
     screen.blit(bg, (0,0))
     screen.blit(game_display, game_display_rect)
     screen.blit(start_display, start_rect)
+
+    highscore_display = highscore_font.render('Highscore: ' + str(highscore), False, 'Black')
+    highscore_rect = highscore_display.get_rect(center = (400, 400))
+    screen.blit(highscore_display, highscore_rect)
+
     pygame.display.update()
 
-exit = False
-while not exit:
+gameOver = False
+while True:
     #Incase 'x' button is pressed
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            exit = True
+            exit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and player_rect.y == 450:
                 player_vel = 15
@@ -112,7 +134,12 @@ while not exit:
     screen.blit(player, player_rect)
 
     if player_rect.colliderect(tri_rect):
-        exit = True
+        gameOver = True
+        if(score > highscore):
+            file = open('highscore.txt', 'w')
+            file.write(str(score))
+            file.close()
+
     if tri_rect.x == player_rect.x:
         score += 1
     
@@ -121,9 +148,45 @@ while not exit:
     screen.blit(score_display, (750, 25))
 
     pygame.display.update() #update entire screen
+
+    while gameOver:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
+            if event.type == pygame.MOUSEMOTION:
+                if play_again_rect.collidepoint(event.pos):
+                    play_again = start_font.render('Again', False, 'White')
+                    play_again_rect = play_again.get_rect(center = (300, 300))
+                else:
+                    play_again = play_again_font.render('Again', False, 'Black')
+                    play_again_rect = play_again.get_rect(center = (300, 300))
+                if quit_rect.collidepoint(event.pos):
+                    quit = start_font.render('Quit', False, 'White')
+                    quit_rect = quit.get_rect(center = (500, 300))
+                else:
+                    quit = quit_font.render('Quit', False, 'Black')
+                    quit_rect = quit.get_rect(center = (500, 300))
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if play_again_rect.collidepoint(event.pos):
+                    gameOver = False
+                    tri_rect = tri.get_rect(bottomright = (900, 500))
+                elif quit_rect.collidepoint(event.pos):
+                    exit()
+
+        screen.blit(bg, (0,0))
+        screen.blit(game_over, game_over_rect)
+        screen.blit(play_again, play_again_rect)
+        screen.blit(quit, quit_rect)
+
+        highscore_display = highscore_font.render('High: ' + str(highscore), False, 'Black')
+        highscore_rect = highscore_display.get_rect(center = (300, 400))
+        score_display = score_font.render('Score: ' + str(score), False, 'Black')
+        score_rect = score_display.get_rect(center = (500, 400))
+        screen.blit(highscore_display, highscore_rect)
+        screen.blit(score_display, score_rect)
+
+        pygame.display.update()
+
     clock.tick(60)
 
-if(score > highscore):
-    file = open('highscore.txt', 'w')
-    file.write(str(score))
-    file.close()
